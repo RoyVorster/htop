@@ -39,6 +39,8 @@ int Platform_getMaxPid();
 
 double Platform_setCPUValues(Meter* this, int cpu);
 
+double Platform_setCPUClockFrequency(Meter* this, int cpu);
+
 void Platform_setMemoryValues(Meter* this);
 
 void Platform_setSwapValues(Meter* this);

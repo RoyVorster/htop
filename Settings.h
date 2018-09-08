@@ -36,6 +36,7 @@ typedef struct Settings_ {
 
    bool countCPUsFromZero;
    bool detailedCPUTime;
+   bool addClockFrequency;
    bool treeView;
    bool showProgramPath;
    bool hideThreads;
