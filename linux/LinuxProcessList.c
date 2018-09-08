@@ -1061,6 +1061,7 @@ static inline void LinuxProcessList_getCPUClockFrequency(LinuxProcessList* this)
    assert(cpus > 0);
 
    int cpu_count = 1;
+   int cpu_clock_total = 0;
    while(line = fgets(buf, PROC_LINE_LENGTH, file)) {
       if (strstr(buf, freq_string) != NULL) {
          rel_line = strdup(line); 
@@ -1069,10 +1070,16 @@ static inline void LinuxProcessList_getCPUClockFrequency(LinuxProcessList* this)
          CPUData* cpuData = &(this->cpus[cpu_count]);
          cpuData->clockFrequency = atoi(strsep(&rel_line, ":")); // Split string twice to get relevant part
 
+         cpu_clock_total += cpuData->clockFrequency;
+
          cpu_count++;
          assert(cpu_count <= cpus);
       }
    }
+   
+   // Average clock frequency
+   CPUData* cpuData = &(this->cpus[0]);
+   cpuData->clockFrequency = cpu_clock_total/(cpu_count - 1);
 
    fclose(file);
 }
