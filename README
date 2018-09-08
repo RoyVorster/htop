@@ -20,6 +20,9 @@ and is reasonably complete, but there is always room for improvement.
 NOTE FROM FORK: Clock frequency and CPU temperature measurement were added for my own use. 
 Given my relative inexperience with C this is intendet for personal use only. If you wish to
 use it though, please go ahead.
+Another note; if you wish to change something in this project: all headers files are automatically generated,
+meaning that if you want to add #define's, variables, etc... you have to add them in what seems like a commented out
+block in the matching source file. 
 
 Comparison between `htop` and classic `top`
 -------------------------------------------
