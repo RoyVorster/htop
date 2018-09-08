@@ -28,7 +28,8 @@ typedef enum {
    CPU_METER_STEAL = 5,
    CPU_METER_GUEST = 6,
    CPU_METER_IOWAIT = 7,
-   CPU_METER_ITEMCOUNT = 8, // number of entries in this enum
+   CPU_METER_CLOCKFREQUENCY = 8,
+   CPU_METER_ITEMCOUNT = 9, // number of entries in this enum
 } CPUMeterValues;
 
 }*/
@@ -63,7 +64,13 @@ static void CPUMeter_updateValues(Meter* this, char* buffer, int size) {
    }
    memset(this->values, 0, sizeof(double) * CPU_METER_ITEMCOUNT);
    double percent = Platform_setCPUValues(this, cpu);
-   xSnprintf(buffer, size, "%5.1f%%", percent);
+   
+   if (this->pl->settings->addClockFrequency) {
+      double freq = Platform_setCPUClockFrequency(this, cpu);
+      xSnprintf(buffer, size, "%5.1f%%%5.1f GHz", percent, freq);
+   } else {
+      xSnprintf(buffer, size, "%5.1f%%", percent);
+   }
 }
 
 static void CPUMeter_display(Object* cast, RichString* out) {

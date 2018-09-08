@@ -75,6 +75,8 @@ typedef struct CPUData_ {
    unsigned long long int softIrqPeriod;
    unsigned long long int stealPeriod;
    unsigned long long int guestPeriod;
+
+   unsigned long long int clockFrequency;
 } CPUData;
 
 typedef struct TtyDriver_ {
@@ -100,8 +102,16 @@ typedef struct LinuxProcessList_ {
 #define PROCDIR "/proc"
 #endif
 
+#ifndef SYSDIR
+#define SYSDIR "/sys"
+#endif
+
 #ifndef PROCSTATFILE
 #define PROCSTATFILE PROCDIR "/stat"
+#endif
+
+#ifndef PROCCPUINFOFILE
+#define PROCCPUINFOFILE PROCDIR "/cpuinfo"
 #endif
 
 #ifndef PROCMEMINFOFILE
@@ -1034,11 +1044,45 @@ static inline double LinuxProcessList_scanCPUTime(LinuxProcessList* this) {
    return period;
 }
 
+static inline void LinuxProcessList_getCPUClockFrequency(LinuxProcessList* this) {
+   FILE* file = fopen(PROCCPUINFOFILE, "r");
+   if (file == NULL) {
+      CRT_fatalError("Cannot open file " PROCCPUINFOFILE);
+   }
+
+   const char* freq_string = "cpu MHz"; // String before clock frequency
+   char buf[PROC_LINE_LENGTH + 1];
+
+   const char* line;
+   char* rel_line;
+
+   int cpus = this->super.cpuCount;
+
+   assert(cpus > 0);
+
+   int cpu_count = 1;
+   while(line = fgets(buf, PROC_LINE_LENGTH, file)) {
+      if (strstr(buf, freq_string) != NULL) {
+         rel_line = strdup(line); 
+         strsep(&rel_line, ":");
+
+         CPUData* cpuData = &(this->cpus[cpu_count]);
+         cpuData->clockFrequency = atoi(strsep(&rel_line, ":")); // Split string twice to get relevant part
+
+         cpu_count++;
+         assert(cpu_count <= cpus);
+      }
+   }
+
+   fclose(file);
+}
+
 void ProcessList_goThroughEntries(ProcessList* super) {
    LinuxProcessList* this = (LinuxProcessList*) super;
 
    LinuxProcessList_scanMemoryInfo(super);
    double period = LinuxProcessList_scanCPUTime(this);
+   LinuxProcessList_getCPUClockFrequency(this);
 
    struct timeval tv;
    gettimeofday(&tv, NULL);
